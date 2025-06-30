@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Booking {
+  id         String        @id @default(cuid())
+  pnr        String        @unique
+  userId     String
+  trainId    String
+  date       DateTime
+  class      ClassType
+  quota      QuotaType
+  status     BookingStatus
+  price      BigInt
+  createdAt  DateTime      @default(now())
+  passengers Passenger[]
+
+  @@index([userId])
+  @@index([trainId, date])
+}
+
+model Passenger {
+  id              String          @id @default(cuid())
+  age             Int
+  name            String
+  berthPreference BerthPreference
+  seatNo          String?
+  status          PassengerStatus
+  bookingId       String
+  booking         Booking         @relation(fields: [bookingId], references: [id])
+
+  @@index([bookingId])
+}
+
+model SeatInventory {
+  id        String    @id @default(cuid())
+  trainId   String
+  date      DateTime
+  class     ClassType
+  seatNo    String
+  isBooked  Boolean   @default(false)
+  pnr       String?
+  quotaType QuotaType
+
+  @@unique([trainId, date, class, seatNo])
+  @@index([trainId, date, class])
+}
+
+model Fare {
+  id            String    @id @default(cuid())
+  trainId       String
+  class         ClassType
+  quota         QuotaType
+  baseFare      BigInt
+  dynamicFactor Float     @default(1.0)
+  effectiveFrom DateTime
+  createdAt     DateTime  @default(now())
+
+  @@unique([trainId, class, quota, effectiveFrom])
+  @@index([trainId, class, quota])
+}
+
+enum BookingStatus {
+  CONFIRMED
+  WAITLIST
+  CANCELLED
+}
+
+enum PassengerStatus {
+  CONFIRMED
+  WL
+  RAC
+}
+
+enum BerthPreference {
+  LB
+  MB
+  UB
+  SL
+  SU
+  NONE
+}
+
+enum ClassType {
+  SL
+  THIRDA
+  SECONDA
+  FIRSTA
+}
+
+enum QuotaType {
+  GENERAL
+  TATKAL
+  PREMIUM
+}

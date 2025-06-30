@@ -1,0 +1,12 @@
+version: "1.2"
+services:
+  user-service:
+    build: '.'
+    ports:
+      - "8080:8080"
+  booking-service:
+    build: '.'
+    ports:
+      - "3000:3000"
+    depends_on:
+      - "user-service"
