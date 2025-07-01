@@ -12,5 +12,5 @@ export const bookingSchema = z.object({
   trainId: z.string().min(1, "Train ID required"),
   travelClass: travelClass,
   quota: quota,
-  passenger: passengerSchema,
+  passenger: z.array(passengerSchema),
 });

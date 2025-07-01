@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -20,6 +19,7 @@ model Booking {
   price      BigInt
   createdAt  DateTime      @default(now())
   passengers Passenger[]
+  Train      Train         @relation(fields: [trainId], references: [id])
 
   @@index([userId])
   @@index([trainId, date])
@@ -63,6 +63,31 @@ model Fare {
   createdAt     DateTime  @default(now())
 
   @@unique([trainId, class, quota, effectiveFrom])
+  @@index([trainId, class, quota])
+}
+
+model Train {
+  id          String       @id @default(cuid())
+  trainNumber String       @unique
+  name        String
+  source      String
+  destination String
+  createdAt   DateTime     @default(now())
+  classes     TrainClass[]
+  bookings    Booking[]
+
+  @@index([source,destination])
+}
+
+model TrainClass {
+  id        String    @id @default(cuid())
+  trainId   String
+  class     ClassType
+  quota     QuotaType
+  seatCount Int
+
+  train Train @relation(fields: [trainId], references: [id])
+
   @@index([trainId, class, quota])
 }
 

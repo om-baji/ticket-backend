@@ -1,6 +1,7 @@
 import { type Request, type Response } from "express";
 import { bookingSchema } from "../schema/booking.schema";
 import { prisma } from "../utils/db.singleton";
+import { PrismaClient } from "@prisma/client";
 
 class Booking {
   private static instance: Booking | null;
@@ -21,7 +22,7 @@ class Booking {
     if (!valid.success) throw new Error("INVALID BODY");
 
     const { trainId, travelClass, quota, passenger } = valid.data;
-
+    
   };
 }
 
