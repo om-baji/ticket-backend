@@ -1,4 +1,4 @@
-import { expect, test, describe } from "bun:test";
+import { expect, test, describe } from "vitest";
 
 describe("Sample test", () => {
   test("2 + 2", () => {

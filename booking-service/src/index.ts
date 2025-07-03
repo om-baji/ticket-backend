@@ -5,6 +5,9 @@ import { metricsMiddleware } from "./middlewares/metrics.middleware";
 import { prisma } from "./utils/db.singleton";
 import { errorHandler } from "./utils/error.handler";
 import trainRouter from "./routes/train.routes";
+import bookingRouter from "./routes/booking.routes";
+import { aP } from "vitest/dist/chunks/reporters.d.BFLkQcL6.js";
+import userRouter from "./routes/user.routes";
 
 const app = express();
 
@@ -37,7 +40,9 @@ app.get("/health", async (_req, res) => {
   });
 });
 
-app.use("/api/v1/trains", trainRouter)
+app.use("/api/v1/user", userRouter);
+app.use("/api/v1/trains", trainRouter);
+app.use("/api/v1/booking", bookingRouter);
 
 app.use(errorHandler);
 

@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { prisma } from "../utils/db.singleton";
 import { AppError } from "../utils/global.error";
+import { redis } from "../utils/redis.singleton";
 
 class Train {
   private static instance: Train | null;
@@ -10,8 +11,22 @@ class Train {
     return this.instance;
   }
 
-  public getTrainBulk = async (req: Request, res: Response) => {
+  public getTrainBulk = async (_req: Request, res: Response) => {
+    const cacheKey = "train_bulk";
+
+    const cache = await redis.get(cacheKey);
+
+    if (cache) {
+      res.status(200).json({
+        success: true,
+        trains: JSON.parse(cache),
+      });
+      return;
+    }
+
     const trains = await prisma.train.findMany();
+
+    await redis.set(cacheKey, JSON.stringify(trains), "EX", 3600);
 
     res.status(200).json({
       success: true,
@@ -79,7 +94,7 @@ class Train {
         destination: dest as string,
       },
     });
-    
+
     res.status(200).json({
       success: true,
       trains,
@@ -91,11 +106,10 @@ class Train {
 
     if (!trainId) throw new AppError("No dest station provided", 411);
 
-    const groupedSeats = await prisma.seatInventory.groupBy({
+    const groupedSeats = await prisma.trainSeatConfig.groupBy({
       by: ["class"],
       where: {
         trainId,
-        isBooked: false,
       },
       _count: true,
     });

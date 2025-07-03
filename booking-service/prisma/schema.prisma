@@ -7,9 +7,26 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Booking {
-  id         String        @id @default(cuid())
-  pnr        String        @unique
+model UserAccount {
+  id           String         @id @default(cuid())
+  name         String
+  email        String         @unique
+  role         Roles          @default(USER)
+  password     String
+  accessToken  String?
+  refreshToken String?
+  booking      TrainBooking[]
+}
+
+model RevokedList {
+  id        Int      @id @default(autoincrement())
+  token     String
+  createdAt DateTime @default(now())
+}
+
+model TrainBooking {
+  id         String             @id @default(cuid())
+  pnr        String             @unique
   userId     String
   trainId    String
   date       DateTime
@@ -17,15 +34,16 @@ model Booking {
   quota      QuotaType
   status     BookingStatus
   price      BigInt
-  createdAt  DateTime      @default(now())
-  passengers Passenger[]
-  Train      Train         @relation(fields: [trainId], references: [id])
+  createdAt  DateTime           @default(now())
+  passengers PassengerBooking[]
+  Train      Train              @relation(fields: [trainId], references: [id])
+  User       UserAccount        @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([trainId, date])
 }
 
-model Passenger {
+model PassengerBooking {
   id              String          @id @default(cuid())
   age             Int
   name            String
@@ -33,26 +51,12 @@ model Passenger {
   seatNo          String?
   status          PassengerStatus
   bookingId       String
-  booking         Booking         @relation(fields: [bookingId], references: [id])
+  booking         TrainBooking    @relation(fields: [bookingId], references: [id])
 
   @@index([bookingId])
 }
 
-model SeatInventory {
-  id        String    @id @default(cuid())
-  trainId   String
-  date      DateTime
-  class     ClassType
-  seatNo    String
-  isBooked  Boolean   @default(false)
-  pnr       String?
-  quotaType QuotaType
-
-  @@unique([trainId, date, class, seatNo])
-  @@index([trainId, date, class])
-}
-
-model Fare {
+model TrainFare {
   id            String    @id @default(cuid())
   trainId       String
   class         ClassType
@@ -67,28 +71,29 @@ model Fare {
 }
 
 model Train {
-  id          String       @id @default(cuid())
-  trainNumber String       @unique
+  id          String            @id @default(cuid())
+  trainNumber String            @unique
   name        String
   source      String
   destination String
-  createdAt   DateTime     @default(now())
-  classes     TrainClass[]
-  bookings    Booking[]
+  createdAt   DateTime          @default(now())
+  classes     TrainSeatConfig[]
+  bookings    TrainBooking[]
 
-  @@index([source,destination])
+  @@index([source, destination])
 }
 
-model TrainClass {
-  id        String    @id @default(cuid())
+model TrainSeatConfig {
+  id        String          @id @default(cuid())
   trainId   String
   class     ClassType
+  berth     BerthPreference
   quota     QuotaType
   seatCount Int
 
   train Train @relation(fields: [trainId], references: [id])
 
-  @@index([trainId, class, quota])
+  @@index([trainId, class, quota, berth])
 }
 
 enum BookingStatus {
@@ -123,4 +128,10 @@ enum QuotaType {
   GENERAL
   TATKAL
   PREMIUM
+}
+
+enum Roles {
+  USER
+  ADMIN
+  AGENT
 }
