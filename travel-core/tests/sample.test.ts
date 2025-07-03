@@ -1,6 +1,6 @@
 import { expect, test, describe } from "vitest";
 
-describe("Sample test", () => {
+describe("Example Test", () => {
   test("2 + 2", () => {
     expect(2 + 2).toBe(4);
   });
