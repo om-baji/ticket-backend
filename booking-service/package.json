@@ -16,6 +16,7 @@
     "@grpc/grpc-js": "^1.13.4",
     "@prisma/client": "^6.10.1",
     "@types/express": "^5.0.3",
+    "@types/ioredis": "^5.0.0",
     "@types/morgan": "^1.9.10",
     "@types/supertest": "^6.0.3",
     "express": "^5.1.0",
