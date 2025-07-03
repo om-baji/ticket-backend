@@ -1,5 +1,5 @@
 {
-  "name": "booking-service",
+  "name": "travel-core",
   "module": "src/index.ts",
   "type": "module",
   "devDependencies": {
