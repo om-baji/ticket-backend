@@ -5,13 +5,14 @@ on:
     branches: ["main"]
     paths:
       - "service/**"
+      - "ticket-engine/**"
 
   pull_request:
     branches: ["main"]
 
 jobs:
   build-booking-service:
-    name: Build Booking Service
+    name: Build Booking Service (Node + Bun)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -35,3 +36,43 @@ jobs:
 
       - name: Run tests
         run: bun test || echo "no tests"
+
+  build-ticket-engine:
+    name: Build Ticketing Engine (Go)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ticket-engine
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Cache Go modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Install dependencies
+        run: go mod tidy
+
+      - name: Build binary
+        run: go build -o bin/ticket-server main.go
+
+      - name: Verify .proto used in server
+        run: |
+          if [ -f "../proto/booking.proto" ]; then
+            echo "booking.proto found"
+          else
+            echo "booking.proto missing!" && exit 1
+          fi
