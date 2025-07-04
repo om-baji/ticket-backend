@@ -15,6 +15,7 @@ type bookingServer struct {
 }
 
 func (s *bookingServer) BookTicket(ctx context.Context, req *pb.BookingRequest) (*pb.BookingResponse, error) {
+	log.Printf("REQUEST FROM CLIENT")
 	log.Printf("Received booking request: TrainID=%s, UserID=%s, Passengers=%d",
 		req.TrainId, req.UserId, len(req.Passengers))
 
