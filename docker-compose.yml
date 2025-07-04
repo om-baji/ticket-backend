@@ -1,12 +1,18 @@
 version: "1.2"
 services:
-  user-service:
-    build: '.'
-    ports:
-      - "8080:8080"
-  booking-service:
-    build: '.'
+  travel-core:
+    build: "."
     ports:
       - "3000:3000"
-    depends_on:
-      - "user-service"
+    networks:
+      - appnet
+  booking-engine:
+    build: "."
+    ports:
+      - "3000:3000"
+    networks:
+      - appnet
+
+networks:
+  appnet:
+    driver: bridge

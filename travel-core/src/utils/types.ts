@@ -8,3 +8,32 @@ export interface JwtPayload {
   iat?: number;
   exp?: number;
 }
+
+export interface Passenger {
+  name: string;
+  berth: string;
+  age: number;
+}
+
+export interface BookingRequest {
+  trainId: string;
+  date: string;
+  userId: string;
+  class: string;
+  quota: string;
+  passengers: Passenger[];
+}
+
+export interface Seats {
+  seatNo : string;
+  berth : string,
+  status : string,
+  info : Passenger
+}
+
+export interface BookingResponse {
+    pnr : string;
+    Seats : Seats[];
+    success : boolean;
+    message : string;
+}

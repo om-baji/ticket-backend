@@ -3,11 +3,11 @@ import express, { type Request, type Response } from "express";
 import morgan from "morgan";
 import { register } from "prom-client";
 import { metricsMiddleware } from "./middlewares/metrics.middleware";
-import bookingRouter from "./routes/booking.routes";
 import trainRouter from "./routes/train.routes";
 import userRouter from "./routes/user.routes";
 import { prisma } from "./utils/db.singleton";
 import { errorHandler } from "./utils/error.handler";
+import ticketRouter from "./routes/ticket.routes";
 
 const app = express();
 
@@ -26,7 +26,7 @@ app.get("/metrics", async (_req, res) => {
   }
 });
 
-app.get("/", (req: Request, res: Response) => {
+app.get("/", (_req: Request, res: Response) => {
   res.send("BOOKING SERVICE");
 });
 
@@ -43,10 +43,10 @@ app.get("/health", async (_req, res) => {
 
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/trains", trainRouter);
-app.use("/api/v1/booking", bookingRouter);
+app.use("/api/v1/ticket", ticketRouter);
 
 app.use(errorHandler);
 
 app.listen(process.env.PORT, () =>
-  console.log("Server running on PORT", process.env.PORT)
+  console.log("Server + gRPC client running on PORT", process.env.PORT)
 );

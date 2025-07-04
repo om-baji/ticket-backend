@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package ticket_backend;
+
+option go_package = "booking-engine/proto;ticket_engine";
+
+message Passenger {
+    string name = 1;
+    string berth = 2;
+    int32 age = 3;
+}
+
+message BookingRequest {
+    string trainId = 1;
+    string date = 2;
+    string userId = 3;
+    string class = 4;
+    string quota = 5;
+    repeated Passenger passengers = 6;
+}
+
+message Seats {
+    string seatNo = 1;
+    string berth = 2;
+    string status = 3;
+    Passenger info = 4;
+}
+
+message BookingResponse {
+    string pnr = 1;
+    repeated Seats seat = 2;
+    bool success = 3;
+    string message = 4;
+}
+
+service BookingEngine {
+    rpc BookTicket (BookingRequest) returns (BookingResponse);
+}
