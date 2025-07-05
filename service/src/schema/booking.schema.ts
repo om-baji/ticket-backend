@@ -17,3 +17,5 @@ export const bookingSchema = z.object({
   passengers: z.array(passengerSchema),
   date : z.string()
 });
+
+export type bookingSchemaType = z.infer<typeof bookingSchema>

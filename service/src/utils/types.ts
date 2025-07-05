@@ -15,6 +15,11 @@ export interface Passenger {
   age: number;
 }
 
+type seatConfig = {
+  seatCount : number,
+  berth : string
+}
+
 export interface BookingRequest {
   trainId: string;
   date: string;
@@ -22,6 +27,7 @@ export interface BookingRequest {
   class: string;
   quota: string;
   passengers: Passenger[];
+  seatConfig : seatConfig[];
 }
 
 export interface Seats {

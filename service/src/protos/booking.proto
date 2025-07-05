@@ -2,6 +2,11 @@ syntax = "proto3";
 
 package ticket_backend;
 
+message SeatConfig {
+    int32 seatCount = 1;
+    string berth = 2;
+}
+
 message Passenger {
     string name = 1;
     string berth = 2;
@@ -15,6 +20,7 @@ message BookingRequest {
     string class = 4;
     string quota = 5;
     repeated Passenger passengers = 6;
+    repeated SeatConfig seatConfig = 7;
 }
 
 message Seats {

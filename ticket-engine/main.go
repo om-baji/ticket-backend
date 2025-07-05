@@ -18,6 +18,9 @@ func (s *bookingServer) BookTicket(ctx context.Context, req *pb.BookingRequest) 
 	log.Printf("REQUEST FROM CLIENT")
 	log.Printf("Received booking request: TrainID=%s, UserID=%s, Passengers=%d",
 		req.TrainId, req.UserId, len(req.Passengers))
+	log.Println("Seat Config ", len(req.SeatConfig))
+
+	log.Println("config ", req.SeatConfig)
 
 	seats := []*pb.Seats{}
 	for i, passenger := range req.Passengers {
