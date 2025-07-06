@@ -28,6 +28,7 @@ export interface BookingRequest {
   quota: string;
   passengers: Passenger[];
   seatConfig : seatConfig[];
+  pnr : string;
 }
 
 export interface Seats {

@@ -1,9 +1,7 @@
 import type { Request, Response } from "express";
-import { RedisKeys } from "../lib/key.gen";
+import { generatePNR, RedisKeys } from "../lib/key.gen";
 import { bookingClient } from "../protos/config";
-import {
-  bookingSchema
-} from "../schema/booking.schema";
+import { bookingSchema } from "../schema/booking.schema";
 import { prisma } from "../utils/db.singleton";
 import { AppError } from "../utils/global.error";
 import { redis } from "../utils/redis.singleton";
@@ -61,11 +59,14 @@ class Ticket {
       .map((grp) => {
         return { seatCount: grp._sum.seatCount, berth: grp.berth.toString() };
       });
-    
+
+    const pnr = generatePNR(req.user?.id || "xcvbnm",trainId);
+
     const grpcBody = {
       ...req.body,
-      seatConfig
-    }
+      seatConfig,
+      pnr
+    };
 
     bookingClient.BookTicket(grpcBody, (err: any, response: any) => {
       if (err) {
