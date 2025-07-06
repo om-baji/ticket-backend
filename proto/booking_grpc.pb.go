@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v6.31.1
-// source: booking.proto
+// source: proto/booking.proto
 
 package ticket_engine
 
@@ -117,5 +117,5 @@ var BookingEngine_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "booking.proto",
+	Metadata: "proto/booking.proto",
 }

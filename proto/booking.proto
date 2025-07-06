@@ -19,10 +19,11 @@ message BookingRequest {
     string trainId = 1;
     string date = 2;
     string userId = 3;
-    string class = 4;
+    string travelClass = 4;
     string quota = 5;
     repeated Passenger passengers = 6;
     repeated SeatConfig seatConfig = 7;
+    string pnr = 8;
 }
 
 message Seats {
