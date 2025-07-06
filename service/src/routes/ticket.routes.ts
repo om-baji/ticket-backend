@@ -9,4 +9,6 @@ ticketRouter.use(authMiddleware);
 
 ticketRouter.post("/book", asyncHandler(TicketController.bookTicket));
 
+ticketRouter.post("/cancel", asyncHandler(TicketController.cancelTicket));
+
 export default ticketRouter;
