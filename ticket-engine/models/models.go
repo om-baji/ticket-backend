@@ -1,5 +1,7 @@
 package models
 
+import pb "github.com/om-baji/ticket-backend/proto"
+
 type Ticket struct {
 	Pnr       string        `json:"pnr"`
 	Date      string        `json:"date"`
@@ -14,6 +16,18 @@ type Passenger struct {
 	Age    int    `json:"age"`
 	SeatNo string `json:"seatNo"`
 	Berth  string `json:"berth"`
+}
+
+type SeatConfig struct {
+	Berth     string
+	SeatCount int
+}
+
+type AllocatedSeat struct {
+	Passenger *pb.Passenger
+	SeatNo    string
+	Berth     string
+	Status    string
 }
 
 type BookingStatus int

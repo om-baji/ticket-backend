@@ -1,6 +1,7 @@
 package db
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -21,11 +22,14 @@ func init() {
 func GetClient() *redis.Client {
 
 	url := os.Getenv("REDIS_URI")
+	fmt.Println("Redis URI from env:", url)
 	opt, err := redis.ParseURL(url)
 
 	if err != nil {
 		log.Fatal("Redis error ", err.Error())
 	}
+
+	opt.DB = 0
 
 	Redis = redis.NewClient(opt)
 	return Redis

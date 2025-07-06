@@ -4,8 +4,10 @@ import (
 	"context"
 	"log"
 	"net"
+	"sync"
 
 	pb "github.com/om-baji/ticket-backend/proto"
+	"github.com/om-baji/ticket-backend/ticket-engine/helper"
 
 	"google.golang.org/grpc"
 )
@@ -15,27 +17,28 @@ type bookingServer struct {
 }
 
 func (s *bookingServer) BookTicket(ctx context.Context, req *pb.BookingRequest) (*pb.BookingResponse, error) {
-	log.Printf("REQUEST FROM CLIENT")
-	log.Printf("Received booking request: TrainID=%s, UserID=%s, Passengers=%d",
-		req.TrainId, req.UserId, len(req.Passengers))
-	log.Println("Seat Config ", len(req.SeatConfig))
+	log.Println("Received booking request:", req)
 
-	log.Println("config ", req.SeatConfig)
+	resultChan := make(chan *pb.Seats, len(req.Passengers))
+	var wg sync.WaitGroup
 
-	seats := []*pb.Seats{}
-	for i, passenger := range req.Passengers {
-		seat := &pb.Seats{
-			SeatNo: "S1-" + string(rune(65+i)),
-			Berth:  passenger.Berth,
-			Status: "CONFIRMED",
-			Info:   passenger,
-		}
-		seats = append(seats, seat)
+	for _, p := range req.Passengers {
+		wg.Add(1)
+		go helper.ConcurrentSeat(p, req.TrainId, req.TravelClass, &wg, resultChan)
+	}
+
+	wg.Wait()
+	close(resultChan)
+
+	var results []*pb.Seats
+	for seat := range resultChan {
+		results = append(results, seat)
+		log.Println("Seat -> ", seat.SeatNo)
 	}
 
 	response := &pb.BookingResponse{
-		Pnr:     "PNR" + req.UserId[len(req.UserId)-4:],
-		Seat:    seats,
+		Pnr:     "PNR_" + req.Pnr,
+		Seat:    results,
 		Success: true,
 		Message: "Booking confirmed successfully",
 	}
