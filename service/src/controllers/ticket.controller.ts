@@ -60,7 +60,10 @@ class Ticket {
         return { seatCount: grp._sum.seatCount, berth: grp.berth.toString() };
       });
 
-    const pnr = generatePNR(req.user?.id || "xcvbnm",trainId);
+    if (!req.user?.id) {
+      throw new AppError("User ID is missing", 400);
+    }
+    const pnr = generatePNR(req.user.id, trainId);
 
     const grpcBody = {
       ...req.body,
