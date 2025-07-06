@@ -17,7 +17,7 @@ type bookingServer struct {
 }
 
 func (s *bookingServer) BookTicket(ctx context.Context, req *pb.BookingRequest) (*pb.BookingResponse, error) {
-	log.Println("Received booking request:", req)
+	log.Println("Received booking request:", req.Pnr)
 
 	resultChan := make(chan *pb.Seats, len(req.Passengers))
 	var wg sync.WaitGroup
