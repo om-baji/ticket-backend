@@ -1,12 +1,49 @@
-version: "1.2"
+version: "3.8"
+
+networks:
+  appnet:
+    driver: bridge
+
 services:
   redis:
-    image: redis
+    image: redis:latest
+    networks:
+      - appnet
     ports:
       - "6379:6379"
+
   redisinsight:
-    image: redis/redisinsight
+    image: redis/redisinsight:latest
+    networks:
+      - appnet
     ports:
       - "5540:5540"
     depends_on:
       - redis
+
+  redis_exporter:
+    image: oliver006/redis_exporter:latest
+    environment:
+      - REDIS_ADDR=redis://redis:6379
+    ports:
+      - "9121:9121"
+    networks:
+      - appnet
+    depends_on:
+      - redis
+
+  grafana:
+    image: grafana/grafana-oss:latest
+    networks:
+      - appnet
+    ports:
+      - "3000:3000"
+
+  prometheus:
+    image: prom/prometheus:latest
+    networks:
+      - appnet
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/datasource/prometheus.yml:/etc/prometheus/prometheus.yml
