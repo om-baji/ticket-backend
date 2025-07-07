@@ -1,7 +1,7 @@
-import cron from "node-cron";
-import { pg, coachMap, TTL, redis } from "./utils";
+import type { Job } from "bullmq";
+import { coachMap, pg, redis, TTL } from "./utils";
 
-const populateRedis = async () => {
+export const populateRedis = async (job : Job) => {
   const res =
     await pg`SELECT a.class, a.berth, a.quota, a."seatCount", b."trainNumber"
               FROM "TrainSeatConfig" a
@@ -33,13 +33,8 @@ const populateRedis = async () => {
   );
 };
 
-populateRedis()
-  .then(() => {
-    console.log("Redis initially populated.");
-  })
-  .catch(console.error);
-
-cron.schedule("0 0 * * *", () => {
-  console.log("Running scheduled Redis population...");
-  populateRedis().catch(console.error);
-});
+// populateRedis()
+//   .then(() => {
+//     console.log("Redis initially populated.");
+//   })
+//   .catch(console.error);

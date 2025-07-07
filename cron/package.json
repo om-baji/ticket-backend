@@ -16,5 +16,8 @@
     "node-cron": "^4.2.0",
     "nodemailer": "^7.0.4",
     "pm2": "^6.0.8"
+  },
+  "scripts": {
+    "start" : "bun --watch index.ts"
   }
 }

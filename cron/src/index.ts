@@ -1,6 +1,8 @@
-import { Queue } from "bullmq";
-import { connection } from "./queues/redis";
+import "./workers/notification"
+import "./workers/cron"
+import { scheduleCron } from "./lib/schedule"
 
-export const notificationQueue = new Queue("NOTIFICATION", { connection });
+scheduleCron()
+    .catch(err => console.error("CRON INIT FAILED :", err))
 
-export const cancelQueue = new Queue("CANCEL_TICKET", { connection });
+console.log("Bull MQ workers started!")
