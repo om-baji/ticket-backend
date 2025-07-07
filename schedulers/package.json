@@ -18,6 +18,7 @@
     "pm2": "^6.0.8"
   },
   "scripts": {
-    "start" : "bun --watch index.ts"
+    "start" : "bun --watch index.ts",
+    "check" : "bun build --target=bun src/index.ts --outdir dist"
   }
 }

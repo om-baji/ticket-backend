@@ -6,6 +6,7 @@ on:
     paths:
       - "service/**"
       - "ticket-engine/**"
+      - "schedulers/**"
 
   pull_request:
     branches: ["main"]
@@ -36,6 +37,26 @@ jobs:
 
       - name: Run tests
         run: bun test || echo "no tests"
+
+  build-scheduler-service:
+    name: Build Scheduler Service (Node + Bun)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: scheduler
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build project
+        run: bun check
 
   build-ticket-engine:
     name: Build Ticketing Engine (Go)
