@@ -5,4 +5,4 @@ import { scheduleCron } from "./lib/schedule"
 scheduleCron()
     .catch(err => console.error("CRON INIT FAILED :", err))
 
-console.log("Bull MQ workers started!")
+console.log("Bull MQ workers started!..")

@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: scheduler
+        working-directory: schedulers
 
     steps:
       - name: Checkout code
