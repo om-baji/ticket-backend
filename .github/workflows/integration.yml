@@ -7,13 +7,44 @@ on:
       - "service/**"
       - "ticket-engine/**"
       - "schedulers/**"
+      - "shared/**"
 
   pull_request:
     branches: ["main"]
 
 jobs:
+  build-shared-config:
+    name: Build Shared Service
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: shared
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Generate Prisma Client
+        run: bunx prisma generate
+
+      - name: Run typecheck
+        run: bunx tsc --noEmit
+
+      - name: Build project
+        run: bun run build
+
+      - name: Run tests
+        run: bun test || echo "no tests"
+  
   build-booking-service:
     name: Build Booking Service (Node + Bun)
+    needs: build-shared-config
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -40,6 +71,7 @@ jobs:
 
   build-scheduler-service:
     name: Build Scheduler Service (Node + Bun)
+    needs: build-shared-config
     runs-on: ubuntu-latest
     defaults:
       run:

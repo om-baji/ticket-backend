@@ -8,7 +8,7 @@ import { AppError } from "../utils/global.error";
 import { coachMap } from "../utils/utils";
 import { populateTicket } from "../lib/queue";
 import type { BookingResponse } from "../utils/types";
-import { PassengerStatus, type BerthPreference } from "@prisma/client";
+import { PassengerStatus, BerthPreference } from "@shared/index";
 
 class Ticket {
   private static instance: Ticket | null;
