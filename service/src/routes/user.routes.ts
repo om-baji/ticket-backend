@@ -98,7 +98,7 @@ userRouter.get("/me", authMiddleware, asyncHandler(UserController.profile));
  *       404:
  *         description: User not found
  */
-userRouter.get("/refresh", authMiddleware, asyncHandler(UserController.refresh));
+userRouter.get("/refresh", asyncHandler(UserController.refresh));
 
 
 export default userRouter;

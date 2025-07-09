@@ -40,6 +40,27 @@ message BookingResponse {
     string message = 4;
 }
 
+message SeatInfo {
+    string seatNo = 1;
+    string berth = 2;
+    string class = 3;
+    string berth = 4;
+}
+
+message CancelRequest {
+    string trainId = 1;
+    repeated SeatInfo seats = 2;
+}
+
+message CancelResponse {
+    bool success = 1;
+    string message = 2;
+}
+
 service BookingEngine {
     rpc BookTicket (BookingRequest) returns (BookingResponse);
+}
+
+service CancelBooking {
+    rpc CancelTicket (CancelRequest) returns (CancelResponse);
 }

@@ -1,8 +1,7 @@
-import "./workers/notification"
-import "./workers/cron"
-import { scheduleCron } from "./lib/schedule"
+// import "./workers/cron"
+// import "./workers/notification"
+import "./workers/ticket";
 
-scheduleCron()
-    .catch(err => console.error("CRON INIT FAILED :", err))
+console.log("Bull MQ workers started!..");
 
-console.log("Bull MQ workers started!..")
+

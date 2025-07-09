@@ -2,8 +2,8 @@ import type { Request, Response } from "express";
 import { generatePNR, RedisKeys } from "../lib/key.gen";
 import { bookingClient } from "../protos/config";
 import { bookingSchema } from "../schema/booking.schema";
-import prisma from "../utils/db.singleton"
-import redis from "../utils/redis.singleton"
+import prisma from "../utils/db.singleton";
+import redis from "../utils/redis.singleton";
 import { AppError } from "../utils/global.error";
 import { coachMap } from "../utils/utils";
 import { populateTicket } from "../lib/queue";
@@ -75,7 +75,7 @@ class Ticket {
         if (err) return reject(err);
         resolve(res);
       });
-    }); 
+    });
 
     res.status(200).json(response);
 
@@ -158,6 +158,14 @@ class Ticket {
 
     await Promise.all(
       seats.map((seat) => {
+        if (!seat.seatNo) {
+          throw new AppError(`Seat number is null or undefined: ${seat.seatNo}`, 400);
+        }
+        const seatNumber = parseInt(seat.seatNo.match(/\d+/)?.[0] || "-1", 10);
+        if (seatNumber < 0) {
+          throw new AppError(`Invalid seat number: ${seat.seatNo}`, 400);
+        }
+
         const bitkey = RedisKeys.generateKey(
           "redis",
           "BITMAP",
@@ -175,12 +183,8 @@ class Ticket {
         );
 
         return Promise.all([
-          redis.zadd(
-            zkey,
-            Number(seat.seatNo) - 1,
-            `${mappedClass}-${seat.seatNo}`
-          ),
-          redis.setbit(bitkey, Number(seat.seatNo) - 1, 0),
+          redis.zadd(zkey, seatNumber - 1, `${mappedClass}-${seatNumber}`),
+          redis.setbit(bitkey, seatNumber - 1, 0),
         ]);
       })
     );

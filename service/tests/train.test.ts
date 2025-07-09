@@ -2,8 +2,8 @@ import request from "supertest";
 import express from "express";
 import trainRouter from "../src/routes/train.routes";
 import { describe, beforeEach, vi, it, expect } from "vitest";
-import { redis } from "../src/utils/redis.singleton";
-import { prisma } from "../src/utils/db.singleton";
+import redis from "../src/utils/redis.singleton";
+import prisma from "../src/utils/db.singleton";
 import { errorHandler } from "../src/utils/error.handler";
 
 vi.mock("../src/utils/db.singleton", () => ({

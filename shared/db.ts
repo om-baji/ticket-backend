@@ -8,7 +8,7 @@ class Singleton {
   static getPrismaInstance(): PrismaClient {
     if (!this.instance) {
       this.instance = new PrismaClient({
-        log: ["query"],
+        log: ["info"],
       });
     }
 
