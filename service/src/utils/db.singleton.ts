@@ -1,15 +1,3 @@
-import { PrismaClient } from "@prisma/client";
+import prisma from "@shared/prisma"
 
-class Singleton {
-    private static instance : PrismaClient | null;
-
-    static getInstance() : PrismaClient {
-        if(!this.instance) {
-            this.instance = new PrismaClient();
-        }
-
-        return this.instance;
-    }
-}
-
-export const prisma = Singleton.getInstance();
+export default prisma;

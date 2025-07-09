@@ -2,12 +2,15 @@ import cookieparser from "cookie-parser";
 import express, { type Request, type Response } from "express";
 import morgan from "morgan";
 import { register } from "prom-client";
+import swaggerUi from "swagger-ui-express";
 import { metricsMiddleware } from "./middlewares/metrics.middleware";
+import ticketRouter from "./routes/ticket.routes";
 import trainRouter from "./routes/train.routes";
 import userRouter from "./routes/user.routes";
-import { prisma } from "./utils/db.singleton";
+import prisma from "./utils/db.singleton";
 import { errorHandler } from "./utils/error.handler";
-import ticketRouter from "./routes/ticket.routes";
+import swaggerJSDoc from "swagger-jsdoc";
+import swaggerDefinition from "./utils/swagger";
 
 const app = express();
 
@@ -16,6 +19,11 @@ app.use(morgan("dev"));
 app.use(cookieparser());
 
 app.use(metricsMiddleware);
+
+const swaggerSpec = swaggerJSDoc({
+  swaggerDefinition,
+  apis: ["src/routes/*.ts"], 
+});
 
 app.get("/metrics", async (_req, res) => {
   try {
@@ -40,6 +48,8 @@ app.get("/health", async (_req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/trains", trainRouter);

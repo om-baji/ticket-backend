@@ -2,10 +2,10 @@ import type { Request, Response } from "express";
 import { decode, encode } from "../lib/pass.hash";
 import { generateToken, verifyToken } from "../lib/sign.jwt";
 import { loginSchema, signupSchema } from "../schema/user.schema";
-import { prisma } from "../utils/db.singleton";
 import { AppError } from "../utils/global.error";
-import { redis } from "../utils/redis.singleton";
 import { RedisKeys } from "../lib/key.gen";
+import redis from "../utils/redis.singleton"
+import prisma from "../utils/db.singleton"
 
 class Controller {
   private static instance: Controller | null;

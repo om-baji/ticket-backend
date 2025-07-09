@@ -40,7 +40,7 @@ export interface Seats {
 
 export interface BookingResponse {
     pnr : string;
-    Seats : Seats[];
+    seat : Seats[];
     success : boolean;
     message : string;
 }

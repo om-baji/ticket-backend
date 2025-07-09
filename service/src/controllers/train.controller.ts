@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
-import { prisma } from "../utils/db.singleton";
+import prisma from "../utils/db.singleton"
+import redis from "../utils/redis.singleton"
 import { AppError } from "../utils/global.error";
-import { redis } from "../utils/redis.singleton";
 import { RedisKeys } from "../lib/key.gen";
 
 class Train {

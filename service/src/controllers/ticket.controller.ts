@@ -2,10 +2,13 @@ import type { Request, Response } from "express";
 import { generatePNR, RedisKeys } from "../lib/key.gen";
 import { bookingClient } from "../protos/config";
 import { bookingSchema } from "../schema/booking.schema";
-import { prisma } from "../utils/db.singleton";
+import prisma from "../utils/db.singleton"
+import redis from "../utils/redis.singleton"
 import { AppError } from "../utils/global.error";
-import { redis } from "../utils/redis.singleton";
 import { coachMap } from "../utils/utils";
+import { populateTicket } from "../lib/queue";
+import type { BookingResponse } from "../utils/types";
+import { PassengerStatus, type BerthPreference } from "@prisma/client";
 
 class Ticket {
   private static instance: Ticket | null;
@@ -40,13 +43,16 @@ class Ticket {
 
   public bookTicket = async (req: Request, res: Response) => {
     const isValid = bookingSchema.safeParse(req.body);
-
-    if (!isValid.success)
+    if (!isValid.success) {
       throw new AppError("Validation Error \n" + isValid.error, 411);
+    }
 
-    const { trainId } = isValid.data;
+    const { trainId, travelClass, quota, date } = isValid.data;
+    const userId = req.user?.id;
+    if (!userId) throw new AppError("User ID is missing", 400);
 
     const id = await this.getTrainId(trainId);
+    const pnr = generatePNR(userId, trainId);
 
     const grp = await prisma.trainSeatConfig.groupBy({
       by: ["berth", "trainId"],
@@ -57,28 +63,70 @@ class Ticket {
 
     const seatConfig = grp
       .filter((group) => group.trainId === id)
-      .map((grp) => {
-        return { seatCount: grp._sum.seatCount, berth: grp.berth.toString() };
+      .map((grp) => ({
+        seatCount: grp._sum.seatCount,
+        berth: grp.berth.toString(),
+      }));
+
+    const grpcBody = { ...req.body, seatConfig, pnr };
+
+    const response = await new Promise<BookingResponse>((resolve, reject) => {
+      bookingClient.BookTicket(grpcBody, (err, res) => {
+        if (err) return reject(err);
+        resolve(res);
       });
+    }); 
 
-    if (!req.user?.id) {
-      throw new AppError("User ID is missing", 400);
+    res.status(200).json(response);
+
+    try {
+      (async () => {
+        try {
+          const booking = await prisma.trainBooking.create({
+            data: {
+              userId,
+              trainId: id,
+              class: travelClass,
+              quota,
+              price: 500,
+              date: new Date(date),
+              pnr,
+              status: "CONFIRMED",
+            },
+          });
+
+          await Promise.all(
+            response.seat.map((seat) =>
+              prisma.passengerBooking.create({
+                data: {
+                  bookingId: booking.id,
+                  name: seat.info.name,
+                  age: seat.info.age,
+                  status: seat.status as PassengerStatus,
+                  seatNo: seat.seatNo,
+                  berthPreference: seat.berth as BerthPreference,
+                },
+              })
+            )
+          );
+        } catch (error) {
+          console.log("Ticket-gen failed, retry initiated!");
+          console.error(error);
+          await populateTicket.add("ticket-gen", {
+            ...response,
+            userId,
+            trainId: id,
+            class: travelClass,
+            quota,
+            price: 500,
+            date,
+          });
+        }
+      })();
+    } catch (error) {
+      console.error("gRPC booking failed:", error);
+      res.status(500).json({ error: "Booking failed" });
     }
-    const pnr = generatePNR(req.user.id, trainId);
-
-    const grpcBody = {
-      ...req.body,
-      seatConfig,
-      pnr,
-    };
-
-    bookingClient.BookTicket(grpcBody, (err: any, response: any) => {
-      if (err) {
-        console.error("gRPC Error:", err);
-        res.status(500).json({ error: err.message });
-      }
-      res.json(response);
-    });
   };
 
   public cancelTicket = async (req: Request, res: Response) => {
@@ -127,7 +175,11 @@ class Ticket {
         );
 
         return Promise.all([
-          redis.zadd(zkey, Number(seat.seatNo) - 1, `${mappedClass}-${seat.seatNo}`),
+          redis.zadd(
+            zkey,
+            Number(seat.seatNo) - 1,
+            `${mappedClass}-${seat.seatNo}`
+          ),
           redis.setbit(bitkey, Number(seat.seatNo) - 1, 0),
         ]);
       })
