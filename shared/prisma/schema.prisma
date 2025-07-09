@@ -1,0 +1,137 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model UserAccount {
+  id           String         @id @default(cuid())
+  name         String
+  email        String         @unique
+  role         Roles          @default(USER)
+  password     String
+  accessToken  String?
+  refreshToken String?
+  booking      TrainBooking[]
+}
+
+model RevokedList {
+  id        Int      @id @default(autoincrement())
+  token     String
+  createdAt DateTime @default(now())
+}
+
+model TrainBooking {
+  id         String             @id @default(cuid())
+  pnr        String             @unique
+  userId     String
+  trainId    String
+  date       DateTime
+  class      ClassType
+  quota      QuotaType
+  status     BookingStatus
+  price      BigInt
+  createdAt  DateTime           @default(now())
+  passengers PassengerBooking[]
+  Train      Train              @relation(fields: [trainId], references: [id])
+  User       UserAccount        @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([trainId, date])
+}
+
+model PassengerBooking {
+  id              String          @id @default(cuid())
+  age             Int
+  name            String
+  berthPreference BerthPreference
+  seatNo          String?
+  status          PassengerStatus
+  bookingId       String
+  booking         TrainBooking    @relation(fields: [bookingId], references: [id])
+
+  @@index([bookingId])
+}
+
+model TrainFare {
+  id            String    @id @default(cuid())
+  trainId       String
+  class         ClassType
+  quota         QuotaType
+  baseFare      BigInt
+  dynamicFactor Float     @default(1.0)
+  effectiveFrom DateTime
+  createdAt     DateTime  @default(now())
+
+  @@unique([trainId, class, quota, effectiveFrom])
+  @@index([trainId, class, quota])
+}
+
+model Train {
+  id          String            @id @default(cuid())
+  trainNumber String            @unique
+  name        String
+  source      String
+  destination String
+  createdAt   DateTime          @default(now())
+  seatConfig     TrainSeatConfig[]
+  bookings    TrainBooking[]
+
+  @@index([source, destination])
+}
+
+model TrainSeatConfig {
+  id        String          @id @default(cuid())
+  trainId   String
+  class     ClassType
+  berth     BerthPreference
+  quota     QuotaType
+  seatCount Int
+
+  train Train @relation(fields: [trainId], references: [id])
+
+  @@index([trainId, class, quota, berth])
+}
+
+enum BookingStatus {
+  CONFIRMED
+  WAITLIST
+  CANCELLED
+}
+
+enum PassengerStatus {
+  CONFIRMED
+  WL
+  RAC
+}
+
+enum BerthPreference {
+  LB
+  MB
+  UB
+  SL
+  SU
+  NONE
+}
+
+enum ClassType {
+  SL
+  THIRDA
+  SECONDA
+  FIRSTA
+}
+
+enum QuotaType {
+  GENERAL
+  TATKAL
+  PREMIUM
+}
+
+enum Roles {
+  USER
+  ADMIN
+  AGENT
+}

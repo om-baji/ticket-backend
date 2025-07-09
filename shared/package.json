@@ -1,0 +1,23 @@
+{
+  "name": "shared",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "prisma": "^6.11.1"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^9.9.0",
+    "@prisma/client": "^6.11.1",
+    "@types/ioredis": "^5.0.0",
+    "faker": "^6.6.6",
+    "ioredis": "^5.6.1"
+  },
+  "exports": {
+    "@shared/redis" : "./redis",
+    "@shared/prisma" : "./prisma"
+  }
+}
