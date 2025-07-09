@@ -14,6 +14,7 @@ class Singleton {
 
     return this.instance;
   }
+  
 
   static getRedisInstance(): Redis {
     if (!this.redisIntance) {
