@@ -23,16 +23,29 @@ var (
 
 	berthOptions = []string{"LB", "MB", "UB", "SL", "SU", "NONE"}
 
-	luaScript = redis.NewScript(`
-		local seat = redis.call("ZRANGE", KEYS[2], 0, 0)[1]
-		if not seat then return nil end
-		local index = tonumber(string.match(seat, "-(%d+)$"))
-		if not index or index < 1 then return nil end
-		index = index - 1
-		if redis.call("GETBIT", KEYS[1], index) == 1 then return nil end
-		redis.call("SETBIT", KEYS[1], index, 1)
-		redis.call("ZREM", KEYS[2], seat)
-		return seat
+	lua = redis.NewScript(`
+		local bitmapKey = KEYS[1]
+		local zsetKey = KEYS[2]
+		local berthHashKey = KEYS[3]
+		local preferredBerth = ARGV[1]
+
+		local seats = redis.call("ZRANGE", zsetKey, 0, 9)
+		for _, seat in ipairs(seats) do
+			local seatNum = tonumber(string.match(seat, "-(%d+)$"))
+			if seatNum then
+				local index = seatNum - 1
+				local bit = redis.call("GETBIT", bitmapKey, index)
+				if bit == 0 then
+					local berth = redis.call("HGET", berthHashKey, tostring(seatNum))
+					if berth == preferredBerth then
+						redis.call("SETBIT", bitmapKey, index, 1)
+						redis.call("ZREM", zsetKey, seat)
+						return seat
+					end
+				end
+			end
+		end
+		return nil
 	`)
 )
 
@@ -40,37 +53,35 @@ func ConcurrentSeat(passenger *pb.Passenger, trainId, class string, wg *sync.Wai
 	defer wg.Done()
 
 	mappedClass := coachMap[class]
-	berth := passenger.Berth
+	preferredBerth := passenger.Berth
 
-	tryAllocate := func(berth string) (interface{}, error) {
-		bitmapKey := "redis:BITMAP:" + trainId + ":" + mappedClass + ":" + berth
-		zsetKey := "redis:ZSET:" + trainId + ":" + mappedClass + ":" + berth
-		return luaScript.Run(ctx, redisClient, []string{bitmapKey, zsetKey}).Result()
-	}
+	bitmapKey := "redis:BITMAP:" + trainId + ":" + mappedClass
+	zsetKey := "redis:ZSET:" + trainId + ":" + mappedClass
+	berthMapKey := "redis:HASH:BERTH:" + trainId + ":" + mappedClass
 
-	val, err := tryAllocate(berth)
+	val, err := lua.Run(ctx, redisClient, []string{bitmapKey, zsetKey, berthMapKey}, preferredBerth).Result()
 	if err != nil {
 		fmt.Println("Lua script error:", err)
 	}
 
-	for i := 0; val == nil && i < len(berthOptions); i++ {
-		if berthOptions[i] == berth {
-			continue
-		}
-		val, err = tryAllocate(berthOptions[i])
-		if err != nil {
-			fmt.Println("Lua script error:", err)
-		}
+	for _, fallbackBerth := range berthOptions {
 		if val != nil {
-			berth = berthOptions[i]
 			break
 		}
+		if fallbackBerth == preferredBerth {
+			continue
+		}
+		val, err = lua.Run(ctx, redisClient, []string{bitmapKey, zsetKey, berthMapKey}, fallbackBerth).Result()
+		if err != nil {
+			fmt.Println("Lua fallback error:", err)
+		}
+		preferredBerth = fallbackBerth
 	}
 
 	if valStr, ok := val.(string); ok {
 		resultChan <- &pb.Seats{
 			SeatNo: valStr,
-			Berth:  berth,
+			Berth:  preferredBerth,
 			Status: "CONFIRMED",
 			Info:   passenger,
 		}
