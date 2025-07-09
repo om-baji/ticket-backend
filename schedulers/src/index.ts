@@ -2,6 +2,6 @@
 // import "./workers/notification"
 import "./workers/ticket";
 
-console.log("Bull MQ workers started!...");
+console.log("Bull MQ workers started!..");
 
 
