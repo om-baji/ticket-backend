@@ -11,6 +11,7 @@ import prisma from "./utils/db.singleton";
 import { errorHandler } from "./utils/error.handler";
 import swaggerJSDoc from "swagger-jsdoc";
 import swaggerDefinition from "./utils/swagger";
+import { ratelimitter } from "./middlewares/rate.limitter";
 
 const app = express();
 
@@ -50,6 +51,8 @@ app.get("/health", async (_req, res) => {
 });
 
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+app.use(ratelimitter);
 
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/trains", trainRouter);
